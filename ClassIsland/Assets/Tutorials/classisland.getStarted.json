@@ -1802,6 +1802,7 @@
               "UseLightDismiss": false,
               "Tag": "classisland.sdg.header.creationPopup.complete",
               "Script": "",
+              "PlacementMode": 7,
               "Xmlns": {}
             },
             {
@@ -2426,6 +2427,7 @@
               "UseLightDismiss": false,
               "Tag": "classisland.sdg.header.creationPopup.complete",
               "Script": "",
+              "PlacementMode": 7,
               "Xmlns": {}
             },
             {
@@ -2629,6 +2631,7 @@
               "UseLightDismiss": false,
               "Tag": "classisland.sdg.header.creationPopup.complete",
               "Script": "",
+              "PlacementMode": 7,
               "Xmlns": {}
             },
             {
@@ -2801,6 +2804,7 @@
               "IconExpression": "sticker(\u5E15\u59C6_\u55E8)",
               "HeroImage": "",
               "TargetSelector": "",
+              "ModalTarget": true,
               "PointToTarget": true,
               "RightButtonText": "\u4E0B\u4E00\u6761",
               "RightButtonActions": [
@@ -3003,6 +3007,7 @@
               "IconExpression": "",
               "HeroImage": "",
               "TargetSelector": "",
+              "ModalTarget": true,
               "PointToTarget": true,
               "RightButtonText": "\u597D",
               "RightButtonActions": [
@@ -3057,6 +3062,7 @@
               "IconExpression": "",
               "HeroImage": "",
               "TargetSelector": "",
+              "ModalTarget": true,
               "PointToTarget": true,
               "RightButtonText": "\u4E0B\u4E00\u6761",
               "RightButtonActions": [

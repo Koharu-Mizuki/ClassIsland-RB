@@ -320,6 +320,7 @@ public partial class TutorialService : ObservableObject, ITutorialService
             Subtitle = sentence.Content,
             Target = sentence.PointToTarget ? targetControl : null,
             PreferredPlacement = sentence.PlacementMode,
+            Classes = { "sr-accent" }
         };
         RenderOptions.SetBitmapInterpolationMode(teachingTip, BitmapInterpolationMode.HighQuality);
         if (!string.IsNullOrEmpty(sentence.LeftButtonText) && !sentence.UseLightDismiss)
