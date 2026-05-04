@@ -1334,6 +1334,7 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
         }
         ViewModel.IsEditMode = false;
         ViewModel.EditModeTutorialPhase = -1;
+        MyWindow.GetState(this)?.AppToastAdorner?.Messages.Clear();
         ComponentsService.SaveConfig();
         TutorialService.PushToNextSentenceByTag("classisland.mainwindow.editMode.exit");
     }
@@ -1357,6 +1358,10 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
         if (!ViewModel.ComponentsListBoxCache.Contains(listBox))
         {
             ViewModel.ComponentsListBoxCache.Add(listBox);
+            if (ViewModel.SelectedComponentSettings != null && settings.Children.Contains(ViewModel.SelectedComponentSettings))
+            {
+                listBox.SelectedItem = ViewModel.SelectedComponentSettings;
+            }
         }
         ViewModel.MainWindowLineListBoxCache[settings] = listBox;
         ViewModel.MainWindowLineListBoxCacheReversed[listBox] = settings;
@@ -1391,6 +1396,10 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
         if (!ViewModel.ComponentsListBoxCache.Contains(listBox))
         {
             ViewModel.ComponentsListBoxCache.Add(listBox);
+            if (ViewModel.SelectedComponentSettings != null && settings.Settings.Children?.Contains(ViewModel.SelectedComponentSettings) == true)
+            {
+                listBox.SelectedItem = ViewModel.SelectedComponentSettings;
+            }
         }
         ViewModel.ContainerComponentListBoxCache[settings] = listBox;
         ViewModel.ContainerComponentListBoxCacheReversed[listBox] = settings;
