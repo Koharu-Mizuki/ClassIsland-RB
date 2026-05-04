@@ -507,15 +507,16 @@ public partial class TutorialService : ObservableObject, ITutorialService
     [RelayCommand]
     public void PostSentenceWorks(int type)
     {
+        if (!TryRunSentenceHook(type == 0 ? "onLeftButtonClicked" : "onRightButtonClicked"))
+        {
+            return;
+        }
+        
         if (CurrentSentence is null)
         {
             return;
         }
 
-        if (!TryRunSentenceHook(type == 0 ? "onLeftButtonClicked" : "onRightButtonClicked"))
-        {
-            return;
-        }
         InvokeActions(type == 0 ? CurrentSentence.LeftButtonActions : CurrentSentence.RightButtonActions);
     }
 
