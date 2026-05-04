@@ -28,6 +28,7 @@ using ClassIsland.Core.Abstractions.Services.Management;
 using ClassIsland.Core.Abstractions.Services.SpeechService;
 using ClassIsland.Core.Assists;
 using ClassIsland.Core.Controls;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.Native;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.Components;
@@ -248,7 +249,7 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
         WindowRuleService.ForegroundWindowChanged += WindowRuleServiceOnForegroundWindowChanged;
         HighFreqTopmostRecheckTimer.Tick += HighFreqTopmostRecheckTimerOnTick;
         
-        PointerStateAssist.SetIsTouchMode(this, true);  // DEBUG
+        this.UseMyWindowExt();
 
         if (Environment.OSVersion.Version <= WindowsVersions.Win10V1809)
         {
