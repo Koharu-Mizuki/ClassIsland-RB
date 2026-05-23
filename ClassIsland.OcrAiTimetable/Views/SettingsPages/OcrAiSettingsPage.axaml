@@ -1,0 +1,105 @@
+<ci:SettingsPageBase x:Class="ClassIsland.OcrAiTimetable.Views.SettingsPages.OcrAiSettingsPage"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:ci="http://classisland.tech/schemas/xaml/core"
+      xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+      xmlns:local="clr-namespace:ClassIsland.OcrAiTimetable.Views.SettingsPages"
+      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+      d:DataContext="{d:DesignInstance local:OcrAiSettingsPage}">
+
+  <ScrollViewer>
+    <StackPanel Classes="settings-container animated-intro" DataContext="{Binding Settings}">
+
+      <!-- API 提供商 -->
+      <controls:SettingsExpander Header="AI 服务提供商"
+                                 Description="选择用于识别课表图片的 AI 服务"
+                                 IsExpanded="True">
+
+        <!-- 海外服务商 -->
+        <controls:SettingsExpanderItem Content="海外服务商">
+          <StackPanel Spacing="8">
+            <RadioButton Content="OpenAI（GPT-4o 等）"
+                         IsChecked="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.OpenAI}}" />
+            <RadioButton Content="Anthropic Claude"
+                         IsChecked="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.Anthropic}}" />
+            <RadioButton Content="Google Gemini"
+                         IsChecked="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.Google}}" />
+          </StackPanel>
+        </controls:SettingsExpanderItem>
+
+        <!-- 国内服务商 -->
+        <controls:SettingsExpanderItem Content="国内服务商">
+          <StackPanel Spacing="8">
+            <RadioButton Content="DeepSeek（仅文字输入模式，不支持图片识别）"
+                         IsChecked="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.DeepSeek}}" />
+            <RadioButton Content="Kimi（Moonshot，支持图片识别）"
+                         IsChecked="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.Kimi}}" />
+          </StackPanel>
+        </controls:SettingsExpanderItem>
+
+        <!-- 其他 -->
+        <controls:SettingsExpanderItem Content="其他">
+          <RadioButton Content="自定义（OpenAI 兼容接口）"
+                       IsChecked="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.Custom}}" />
+        </controls:SettingsExpanderItem>
+
+      </controls:SettingsExpander>
+
+      <!-- 自定义端点（仅自定义时显示） -->
+      <controls:SettingsExpander Header="自定义接口地址"
+                                 Description="仅在选择「自定义」时需要填写，例如 http://localhost:11434/v1"
+                                 IsVisible="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.Custom}}">
+        <controls:SettingsExpander.Footer>
+          <TextBox Watermark="https://your-endpoint/v1"
+                   Text="{Binding CustomEndpoint}"
+                   MinWidth="280" />
+        </controls:SettingsExpander.Footer>
+      </controls:SettingsExpander>
+
+      <!-- API 密钥 -->
+      <controls:SettingsExpander Header="API 密钥"
+                                 Description="密钥仅保存在本地，不会上传到任何服务器">
+        <controls:SettingsExpander.Footer>
+          <TextBox Watermark="sk-..."
+                   Text="{Binding ApiKey}"
+                   PasswordChar="●"
+                   MinWidth="280" />
+        </controls:SettingsExpander.Footer>
+      </controls:SettingsExpander>
+
+      <!-- DeepSeek 提示 -->
+      <controls:InfoBar Title="DeepSeek 图片识别不可用"
+                        Message="DeepSeek 标准模型仅支持文字输入，请在导入页面切换到「手动文字输入」模式。"
+                        Severity="Warning"
+                        IsOpen="True"
+                        IsClosable="False"
+                        IsVisible="{Binding Provider, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static local:AiProviderRef.DeepSeek}}" />
+
+      <!-- 模型 ID -->
+      <controls:SettingsExpander Header="模型 ID"
+                                 Description="切换服务商时会自动填入推荐模型，也可手动修改">
+        <controls:SettingsExpander.Footer>
+          <TextBox Watermark="gpt-4o"
+                   Text="{Binding ModelId}"
+                   MinWidth="220" />
+        </controls:SettingsExpander.Footer>
+      </controls:SettingsExpander>
+
+      <!-- 保存按钮 -->
+      <Button Content="保存设置"
+              Classes="accent"
+              HorizontalAlignment="Right"
+              Click="ButtonSave_OnClick" />
+
+      <!-- 提示 -->
+      <controls:InfoBar Title="隐私说明"
+                        Message="识别时，图片会发送至您选择的 AI 服务商。请确认您的课表图片不包含敏感信息。"
+                        Severity="Informational"
+                        IsOpen="True"
+                        IsClosable="False" />
+
+    </StackPanel>
+  </ScrollViewer>
+</ci:SettingsPageBase>
