@@ -948,13 +948,114 @@ public partial class ProfileSettingsWindow : MyWindow
     
     private void TimeLineListControl_OnRequestInsertTimePoint(object? sender, TimeLineInsertTimePointEventArgs e)
     {
+        if (e.Location == TimeLineInsertTimePointEventArgs.InsertLocation.Before)
+        {
+            AddTimeLayoutItemBefore(e.Kind, e.TimePoint);
+            return;
+        }
         if (e.Location != TimeLineInsertTimePointEventArgs.InsertLocation.After)
         {
-            return;  // 未实现
+            return;
         }
-
         ViewModel.SelectedTimePoint = e.TimePoint;
         AddTimeLayoutItem(e.Kind);
+    }
+
+    private void AddTimeLayoutItemBefore(int timeType, TimeLayoutItem target)
+    {
+        var timeLayout = ViewModel.SelectedTimeLayout;
+        if (timeLayout == null) return;
+
+        var settings = ViewModel.SettingsService.Settings;
+        var duration = TimeSpan.FromMinutes(timeType switch
+        {
+            0 => settings.DefaultOnClassTimePointMinutes,
+            1 => settings.DefaultBreakingTimePointMinutes,
+            _ => 0
+        });
+
+        var index = timeLayout.Layouts.IndexOf(target);
+
+        if (timeType == 2)
+        {
+            var baseSec = target.StartTime;
+            if (timeLayout.Layouts.Any(i => i.TimeType == 2 && i.StartTime == baseSec))
+            {
+                this.ShowWarningToast("这里已经存在一条分割线。");
+                return;
+            }
+            var newItem = new TimeLayoutItem { TimeType = 2, StartTime = baseSec, EndTime = baseSec };
+            AddTimePoint(newItem);
+            ViewModel.SelectedTimePoint = newItem;
+            SentrySdk.Metrics.EmitCounter("views.ProfileSettingsWindow.timePoint.create", 1,
+            [
+                new KeyValuePair<string, object>("Type", timeType.ToString()),
+                new KeyValuePair<string, object>("Auto", "False")
+            ]);
+            ViewModel.TutorialService.PushToNextSentence();
+            return;
+        }
+
+        if (timeType == 3)
+        {
+            var baseSec = target.StartTime;
+            if (timeLayout.Layouts.Any(i => i.TimeType == 3 && i.StartTime == baseSec))
+            {
+                this.ShowWarningToast("这里已经存在一个行动。");
+                return;
+            }
+            var newItem = new TimeLayoutItem { TimeType = 3, StartTime = baseSec, EndTime = baseSec, ActionSet = new ActionSet() };
+            AddTimePoint(newItem);
+            ViewModel.SelectedTimePoint = newItem;
+            SentrySdk.Metrics.EmitCounter("views.ProfileSettingsWindow.timePoint.create", 1,
+            [
+                new KeyValuePair<string, object>("Type", timeType.ToString()),
+                new KeyValuePair<string, object>("Auto", "False")
+            ]);
+            ViewModel.TutorialService.PushToNextSentence();
+            return;
+        }
+
+        // Class (0) or Break (1): new item ends at target.StartTime
+        var endTime = target.StartTime;
+        var startTime = endTime - duration;
+
+        var prevItems = timeLayout.Layouts.Take(index).Where(i => i.TimeType != 2).ToList();
+        if (prevItems.Count > 0)
+        {
+            var prev = prevItems.Last();
+            if (prev.EndTime >= endTime)
+            {
+                this.ShowWarningToast("没有合适的位置来插入新的时间点。");
+                return;
+            }
+            if (prev.EndTime > startTime)
+            {
+                this.ShowToast("没有足够的空间完全插入该时间点，已缩短时间点长度。");
+                startTime = prev.EndTime;
+            }
+        }
+
+        if (startTime >= endTime)
+        {
+            this.ShowWarningToast("没有合适的位置来插入新的时间点。");
+            return;
+        }
+
+        var newClassItem = new TimeLayoutItem
+        {
+            TimeType = timeType,
+            StartTime = startTime,
+            EndTime = endTime
+        };
+        AddTimePoint(newClassItem);
+        ViewModel.SelectedTimePoint = newClassItem;
+        SentrySdk.Metrics.EmitCounter("views.ProfileSettingsWindow.timePoint.create", 1,
+        [
+            new KeyValuePair<string, object>("Type", timeType.ToString()),
+            new KeyValuePair<string, object>("Auto", "False")
+        ]);
+        ViewModel.TutorialService.PushToNextSentence();
     }
     
     private void ButtonRemoveTimePoint_OnClick(object sender, RoutedEventArgs e)

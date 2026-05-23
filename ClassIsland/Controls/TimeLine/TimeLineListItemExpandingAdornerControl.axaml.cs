@@ -280,6 +280,26 @@ public partial class TimeLineListItemExpandingAdornerControl : UserControl
         });
     }
 
+    private void ButtonAddBeforeClass_OnClick(object? sender, RoutedEventArgs e)
+    {
+        RaiseEvent(new TimeLineInsertTimePointEventArgs(RequestInsertTimePointEvent)
+        {
+            Kind = 0,
+            TimePoint = TimePoint,
+            Location = TimeLineInsertTimePointEventArgs.InsertLocation.Before
+        });
+    }
+
+    private void ButtonAddBeforeBreaking_OnClick(object? sender, RoutedEventArgs e)
+    {
+        RaiseEvent(new TimeLineInsertTimePointEventArgs(RequestInsertTimePointEvent)
+        {
+            Kind = 1,
+            TimePoint = TimePoint,
+            Location = TimeLineInsertTimePointEventArgs.InsertLocation.Before
+        });
+    }
+
     private void ButtonDismiss_OnClick(object? sender, RoutedEventArgs e)
     {
         IsAddTimePointPopupVisible = false;
