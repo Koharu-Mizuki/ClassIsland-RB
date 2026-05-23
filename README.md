@@ -1,5 +1,12 @@
 <!--markdownlint-disable MD001 MD033 MD041 MD051-->
 
+> [!NOTE]
+> **这是 [ClassIsland/ClassIsland](https://github.com/ClassIsland/ClassIsland) 的个人 Fork（Koharu-Mizuki/ClassIsland-RB），包含一些个人修改和实验性功能。**
+> 如需使用正式版本，请前往[原项目](https://github.com/ClassIsland/ClassIsland)。
+>
+> **本 Fork 的主要改动：**
+> - 时间轴编辑器支持「在前插入」时间点（补全原项目未实现功能）
+
 <div align="center">
 
 # <image src="ClassIsland/Assets/AppLogo_AppLogo.svg" height="28" width="28"/> ClassIsland
@@ -8,24 +15,13 @@
 
 ![Banner](https://res.classisland.tech/banners/banner-v2-1.webp)
 
-[![Stars](https://img.shields.io/github/stars/ClassIsland/ClassIsland?label=Stars)](https://github.com/ClassIsland/ClassIsland)
-[![正式版 Release](https://img.shields.io/github/v/release/ClassIsland/ClassIsland?style=flat-square&color=%233fb950&label=正式版)](https://github.com/ClassIsland/ClassIsland/releases/latest)
-[![测试版 Release](https://img.shields.io/github/v/release/ClassIsland/ClassIsland?include_prereleases&style=flat-square&label=测试版)](https://github.com/ClassIsland/ClassIsland/releases/)
-[![下载量](https://img.shields.io/github/downloads/ClassIsland/ClassIsland/total?style=social&label=下载量&logo=github)](https://github.com/ClassIsland/ClassIsland/releases/latest)<br/>
 ![.NET 版本](https://img.shields.io/badge/.NET-8-512bd4?style=flat-square)
-![GitHub Repo size](https://img.shields.io/github/repo-size/ClassIsland/ClassIsland?style=flat-square&color=3cb371)
-[![GitHub Repo Languages](https://img.shields.io/github/languages/top/ClassIsland/ClassIsland?style=flat-square)](https://github.com/ClassIsland/ClassIsland/search?l=c%23)
-
-<a href="https://hellogithub.com/repository/ClassIsland/ClassIsland" target="_blank"><img src="https://api.hellogithub.com/v1/widgets/recommend.svg?rid=fb844b7286244bf8a1d67bfd228a95c7&claim_uid=kZp2qRKGVYrXoTS" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+![GitHub Repo size](https://img.shields.io/github/repo-size/Koharu-Mizuki/ClassIsland-RB?style=flat-square&color=3cb371)
 
 ClassIsland 是一款适用于班级多媒体屏幕的跨平台课表信息显示工具，可以在 Windows PC、Mac 及 Linux 设备屏幕上显示各种信息。<br/>
 本应用的名字灵感源于 iOS 灵动岛（Dynamic Island）功能。
 
-#### 💬[Classlsland QQ 频道](https://pd.qq.com/s/grr6qwqwj) | [Classlsland QQ 群组 1 群](https://qm.qq.com/q/4NsDQKiAuQ) | [2 群](https://qm.qq.com/q/MhWCvrk7mu)
-
-#### [🌐 官方网站](https://classisland.tech/) | [🚀 软件下载](https://classisland.tech/download)｜[📚 项目文档](https://docs.classisland.tech)｜[🗳 功能投票](https://github.com/ClassIsland/voting/discussions?discussions_q=is%3Aopen+sort%3Atop)
-
-###### [观看介绍视频，快速了解突破创新 →](https://www.bilibili.com/video/BV12fFoefEGn/)
+#### [📦 原项目](https://github.com/ClassIsland/ClassIsland) | [🌐 官方网站](https://classisland.tech/) | [📚 项目文档](https://docs.classisland.tech)
 
 </div>
 
