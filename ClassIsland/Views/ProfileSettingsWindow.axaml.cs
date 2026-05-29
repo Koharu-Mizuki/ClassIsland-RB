@@ -49,6 +49,18 @@ namespace ClassIsland.Views;
 public partial class ProfileSettingsWindow : MyWindow
 {
     private bool _isOpen = false;
+    private record UndoEntry(bool IsAdd, TimeLayoutItem Item, TimeLayout Layout, int Index, string Description);
+    private readonly Stack<UndoEntry> _undoStack = new();
+    private readonly Stack<UndoEntry> _redoStack = new();
+
+    private static string DescribeItem(TimeLayoutItem item) => item.TimeType switch
+    {
+        0 => $"上课 {item.StartTime:hh\\:mm}",
+        1 => $"课间 {item.StartTime:hh\\:mm}",
+        2 => "分割线",
+        3 => $"行动 {item.StartTime:hh\\:mm}",
+        _ => "时间点"
+    };
 
     public static readonly FuncValueConverter<ProfileTransferProviderType, string>
         ProfileTransferProviderTypeToImportButtonTextConverter = new(x => x switch
@@ -78,6 +90,13 @@ public partial class ProfileSettingsWindow : MyWindow
             .Subscribe(_ => OnDrawerStateChanged());
         ViewModel.ObservableForProperty(x => x.SelectedTimeLayout)
             .Subscribe(_ => TimeLineListControl?.ScrollIntoViewCentered(ViewModel.SelectedTimeLayout?.Layouts.FirstOrDefault()));
+        ViewModel.ObservableForProperty(x => x.SelectedTimeLayout)
+            .Subscribe(_ =>
+            {
+                _undoStack.Clear(); _redoStack.Clear();
+                ViewModel.CanUndo = false; ViewModel.CanRedo = false;
+                ViewModel.UndoDescriptions.Clear(); ViewModel.RedoDescriptions.Clear();
+            });
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -117,6 +136,14 @@ public partial class ProfileSettingsWindow : MyWindow
                     TimeLineListControl?.ScrollIntoViewCentered(ViewModel.SelectedTimePoint);
                     e.Handled = true;
                 }
+                break;
+            case Key.Z when e.KeyModifiers == KeyModifiers.Control:
+                UndoLastAction();
+                e.Handled = true;
+                break;
+            case Key.Y when e.KeyModifiers == KeyModifiers.Control:
+                RedoLastAction();
+                e.Handled = true;
                 break;
         }
     }
@@ -808,6 +835,106 @@ public partial class ProfileSettingsWindow : MyWindow
         FlyoutHelper.CloseAncestorFlyout(sender);
     }
     
+    private void PushAddUndo(TimeLayoutItem item, TimeLayout layout)
+    {
+        var index = layout.Layouts.IndexOf(item);
+        var desc = $"添加{DescribeItem(item)}";
+        _undoStack.Push(new UndoEntry(IsAdd: true, item, layout, index, desc));
+        ViewModel.UndoDescriptions.Insert(0, desc);
+        _redoStack.Clear();
+        ViewModel.RedoDescriptions.Clear();
+        ViewModel.CanUndo = true;
+        ViewModel.CanRedo = false;
+    }
+
+    private void PushDeleteUndo(TimeLayoutItem item, TimeLayout layout, int index)
+    {
+        var desc = $"删除{DescribeItem(item)}";
+        _undoStack.Push(new UndoEntry(IsAdd: false, item, layout, index, desc));
+        ViewModel.UndoDescriptions.Insert(0, desc);
+        _redoStack.Clear();
+        ViewModel.RedoDescriptions.Clear();
+        ViewModel.CanUndo = true;
+        ViewModel.CanRedo = false;
+    }
+
+    private void UndoLastAction()
+    {
+        if (!_undoStack.TryPop(out var entry)) return;
+        var undoneIndex = entry.IsAdd ? entry.Layout.Layouts.IndexOf(entry.Item) : entry.Index;
+        if (entry.IsAdd)
+            entry.Layout.RemoveTimePoint(entry.Item);
+        else
+            entry.Layout.InsertTimePoint(entry.Index, entry.Item);
+        if (ViewModel.UndoDescriptions.Count > 0) ViewModel.UndoDescriptions.RemoveAt(0);
+        _redoStack.Push(entry with { Index = undoneIndex });
+        ViewModel.RedoDescriptions.Insert(0, entry.Description);
+        ViewModel.CanUndo = _undoStack.Count > 0;
+        ViewModel.CanRedo = true;
+    }
+
+    private void RedoLastAction()
+    {
+        if (!_redoStack.TryPop(out var entry)) return;
+        int redoneIndex;
+        if (entry.IsAdd)
+        {
+            entry.Layout.InsertTimePoint(entry.Index, entry.Item);
+            redoneIndex = entry.Index;
+        }
+        else
+        {
+            redoneIndex = entry.Layout.Layouts.IndexOf(entry.Item);
+            entry.Layout.RemoveTimePoint(entry.Item);
+        }
+        if (ViewModel.RedoDescriptions.Count > 0) ViewModel.RedoDescriptions.RemoveAt(0);
+        _undoStack.Push(entry with { Index = redoneIndex });
+        ViewModel.UndoDescriptions.Insert(0, entry.Description);
+        ViewModel.CanRedo = _redoStack.Count > 0;
+        ViewModel.CanUndo = true;
+    }
+
+    private void UndoToIndex(int count)
+    {
+        for (var i = 0; i < count; i++) UndoLastAction();
+    }
+
+    private void RedoToIndex(int count)
+    {
+        for (var i = 0; i < count; i++) RedoLastAction();
+    }
+
+    private void ButtonUndoAdd_OnClick(object? sender, RoutedEventArgs e)
+    {
+        FlyoutHelper.CloseAncestorFlyout(sender as Control);
+        UndoLastAction();
+    }
+
+    private void ButtonRedoAdd_OnClick(object? sender, RoutedEventArgs e)
+    {
+        FlyoutHelper.CloseAncestorFlyout(sender as Control);
+        RedoLastAction();
+    }
+
+    private void UndoHistoryList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ListBox lb || lb.SelectedIndex < 0) return;
+        var count = lb.SelectedIndex + 1;
+        lb.SelectedIndex = -1;
+        FlyoutHelper.CloseAncestorFlyout(lb);
+        UndoToIndex(count);
+    }
+
+    private void RedoHistoryList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ListBox lb || lb.SelectedIndex < 0) return;
+        var count = lb.SelectedIndex + 1;
+        lb.SelectedIndex = -1;
+        FlyoutHelper.CloseAncestorFlyout(lb);
+        RedoToIndex(count);
+    }
+
+
     private void AddTimePoint(TimeLayoutItem item)
     {
         var timeLayout = ViewModel.SelectedTimeLayout;
@@ -915,6 +1042,7 @@ public partial class ProfileSettingsWindow : MyWindow
         AddTimePoint(newItem);
         // ReSortTimeLayout(newItem);
         ViewModel.SelectedTimePoint = newItem;
+        PushAddUndo(newItem, timeLayout);
         //OpenDrawer("TimePointEditor");
         SentrySdk.Metrics.EmitCounter("views.ProfileSettingsWindow.timePoint.create", 1,
         [
@@ -964,47 +1092,17 @@ public partial class ProfileSettingsWindow : MyWindow
 
     private void RemoveSelectedTimePoint()
     {
-        if (ViewModel.SelectedTimePoint == null) 
+        if (ViewModel.SelectedTimePoint == null)
             return;
         var timePoint = ViewModel.SelectedTimePoint;
         var timeLayout = ViewModel.SelectedTimeLayout;
-        if (timeLayout == null)
-        {
-            return;
-        }
+        if (timeLayout == null) return;
         var i = timeLayout.Layouts.IndexOf(timePoint);
         timeLayout.RemoveTimePoint(timePoint);
         if (i > 0)
             ViewModel.SelectedTimePoint = timeLayout.Layouts[i - 1];
-        var revertButton = new Button()
-        {
-            Content = "撤销"
-        };
-
-        ViewModel.CurrentTimePointDeleteRevertToast?.Close();
-        var message = ViewModel.CurrentTimePointDeleteRevertToast = new ToastMessage()
-        {
-            Message = $"已删除时间点 {timePoint}。",
-            Duration = TimeSpan.FromSeconds(10),
-            ActionContent = revertButton
-        };
-        revertButton.Click += RevertButtonOnClick;
-        message.ClosedCancellationTokenSource.Token.Register(() =>
-        {
-            revertButton.Click -= RevertButtonOnClick;
-            ViewModel.CurrentTimePointDeleteRevertToast = null;
-        });
-        ViewModel.ObservableForProperty(x => x.SelectedTimeLayout).Subscribe(_ => message.Close());
-        this.ShowToast(message);
-        
+        PushDeleteUndo(timePoint, timeLayout, i);
         SentrySdk.Metrics.EmitCounter("views.ProfileSettingsWindow.timePoint.remove", 1);
-        return;
-
-        void RevertButtonOnClick(object? o, RoutedEventArgs routedEventArgs)
-        {
-            AddTimePoint(timePoint);
-            message.Close();
-        }
     }
 
     private void ButtonRefreshTimeLayout_OnClick(object sender, RoutedEventArgs e)
