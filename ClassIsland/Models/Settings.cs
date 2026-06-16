@@ -13,6 +13,7 @@ using ClassIsland.Shared.Abstraction.Models;
 using ClassIsland.Shared.Enums;
 using ClassIsland.Shared.Models.Notification;
 using ClassIsland.Models.AllContributors;
+using ClassIsland.Models.OcrAiTimetable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -216,6 +217,7 @@ public class Settings : ObservableRecipient, ILessonControlSettings, INotificati
     private string _selectedUpdateMirrorV2 = "main";
     private string _selectedUpdateChannelV2 = "stable";
     private GptSoVitsSpeechSettings _gptSoVitsSpeechSettings = new();
+    private OcrAiTimetableSettings _ocrAiTimetable = new();
     private double _mainWindowLineVerticalMargin = 5;
     private ObservableCollection<Guid> _trustedProfileIds = [];
     private bool _isNonExactCountdownEnabled = false;
@@ -1610,6 +1612,20 @@ public class Settings : ObservableRecipient, ILessonControlSettings, INotificati
         {
             if (Equals(value, _gptSoVitsSpeechSettings)) return;
             _gptSoVitsSpeechSettings = value;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// AI 识图导入课表配置。
+    /// </summary>
+    public OcrAiTimetableSettings OcrAiTimetable
+    {
+        get => _ocrAiTimetable;
+        set
+        {
+            if (Equals(value, _ocrAiTimetable)) return;
+            _ocrAiTimetable = value;
             OnPropertyChanged();
         }
     }
