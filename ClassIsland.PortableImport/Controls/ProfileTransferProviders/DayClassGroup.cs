@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using ClassIsland.PortableImport.Models;
 
 namespace ClassIsland.PortableImport.Controls.ProfileTransferProviders;
 
@@ -14,4 +16,7 @@ public class DayClassGroup
     public bool HasDayName => !string.IsNullOrEmpty(DayName);
 
     public ObservableCollection<EditableClassItem> Classes { get; } = new();
+
+    /// <summary>这一天自己的时间段，导入时用来生成/匹配专属时间表。</summary>
+    public List<ImportPeriod> Periods { get; set; } = new();
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -227,7 +228,8 @@ public partial class TextImportProvider : ProfileTransferProviderControlBase, IN
             var group = new DayClassGroup
             {
                 DayName = classPlan.DayName,
-                WeekDay = classPlan.WeekDay
+                WeekDay = classPlan.WeekDay,
+                Periods = classPlan.Periods
             };
             for (var i = 0; i < classPlan.Classes.Count; i++)
             {
@@ -300,22 +302,6 @@ public partial class TextImportProvider : ProfileTransferProviderControlBase, IN
             return;
         }
 
-        var timeLayout = new TimeLayout { Name = _result.TimeLayout.Name };
-        foreach (var period in _result.TimeLayout.Periods)
-        {
-            if (TryParseTime(period.Start, out var start) && TryParseTime(period.End, out var end))
-            {
-                timeLayout.Layouts.Add(new TimeLayoutItem
-                {
-                    StartTime = start,
-                    EndTime = end,
-                    TimeType = period.Type == "break" ? 1 : 0
-                });
-            }
-        }
-        var timeLayoutId = Guid.NewGuid();
-        profile.TimeLayouts[timeLayoutId] = timeLayout;
-
         Guid groupId;
         if (IsCreatingNewGroup || ImportType == 1)
         {
@@ -333,7 +319,7 @@ public partial class TextImportProvider : ProfileTransferProviderControlBase, IN
             var classPlan = new ClassPlan
             {
                 Name = classGroup.HasDayName ? classGroup.DayName + "课表" : "手动输入的课表",
-                TimeLayoutId = timeLayoutId,
+                TimeLayoutId = FindOrCreateTimeLayout(profile, classGroup.Periods),
                 AssociatedGroup = groupId
             };
             if (classGroup.WeekDay.HasValue)
@@ -363,6 +349,57 @@ public partial class TextImportProvider : ProfileTransferProviderControlBase, IN
 
             profile.ClassPlans[Guid.NewGuid()] = classPlan;
         }
+    }
+
+    /// <summary>
+    /// 复用时间点完全一致的现有时间表，否则新建一个——确保不同天各自配对正确的时间表。
+    /// </summary>
+    private static Guid FindOrCreateTimeLayout(Profile profile, List<ImportPeriod> periods)
+    {
+        var items = new List<TimeLayoutItem>();
+        foreach (var period in periods)
+        {
+            if (TryParseTime(period.Start, out var start) && TryParseTime(period.End, out var end))
+            {
+                items.Add(new TimeLayoutItem
+                {
+                    StartTime = start,
+                    EndTime = end,
+                    TimeType = period.Type == "break" ? 1 : 0
+                });
+            }
+        }
+
+        var existing = profile.TimeLayouts.FirstOrDefault(kv =>
+        {
+            if (kv.Value.Layouts.Count != items.Count)
+            {
+                return false;
+            }
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (kv.Value.Layouts[i].StartTime != items[i].StartTime ||
+                    kv.Value.Layouts[i].EndTime != items[i].EndTime ||
+                    kv.Value.Layouts[i].TimeType != items[i].TimeType)
+                {
+                    return false;
+                }
+            }
+            return true;
+        });
+        if (existing.Value != null)
+        {
+            return existing.Key;
+        }
+
+        var timeLayout = new TimeLayout { Name = "手动输入的时间表" };
+        foreach (var item in items)
+        {
+            timeLayout.Layouts.Add(item);
+        }
+        var timeLayoutId = Guid.NewGuid();
+        profile.TimeLayouts[timeLayoutId] = timeLayout;
+        return timeLayoutId;
     }
 
     private static bool TryParseTime(string text, out TimeSpan result)

@@ -50,17 +50,34 @@ public static class TextTimetableParser
         var lines = text.Split('\n').Select(l => l.Trim()).ToList();
         var sections = SplitBySections(lines);
 
-        // 汇总所有出现过的时间段（按 起-止-类型 去重，最后按开始时间排序）
+        // 汇总所有出现过的时间段，仅用于预览展示（按 起-止-类型 去重，最后按开始时间排序）；
+        // 每一天实际使用的时间表以下面 ImportClassPlan.Periods 为准，不与其他天混用。
         var seen = new HashSet<string>();
         var periods = new List<ImportPeriod>();
+        var classPlans = new List<ImportClassPlan>();
         foreach (var section in sections)
         {
-            foreach (var period in ParseLines(section.Lines).periods)
+            var (sectionPeriods, classes) = ParseLines(section.Lines);
+            sectionPeriods.Sort((a, b) => string.Compare(a.Start, b.Start, StringComparison.Ordinal));
+
+            foreach (var period in sectionPeriods)
             {
                 if (seen.Add($"{period.Start}-{period.End}-{period.Type}"))
                 {
                     periods.Add(period);
                 }
+            }
+
+            if (classes.Count != 0 || section.WeekDay.HasValue)
+            {
+                classPlans.Add(new ImportClassPlan
+                {
+                    Name = section.WeekDay.HasValue ? section.DayName + "课表" : "手动输入的课表",
+                    Classes = classes,
+                    WeekDay = section.WeekDay,
+                    DayName = section.DayName,
+                    Periods = sectionPeriods
+                });
             }
         }
 
@@ -70,22 +87,6 @@ public static class TextTimetableParser
         }
 
         periods.Sort((a, b) => string.Compare(a.Start, b.Start, StringComparison.Ordinal));
-
-        var classPlans = new List<ImportClassPlan>();
-        foreach (var section in sections)
-        {
-            var classes = ParseLines(section.Lines).classes;
-            if (classes.Count != 0 || section.WeekDay.HasValue)
-            {
-                classPlans.Add(new ImportClassPlan
-                {
-                    Name = section.WeekDay.HasValue ? section.DayName + "课表" : "手动输入的课表",
-                    Classes = classes,
-                    WeekDay = section.WeekDay,
-                    DayName = section.DayName
-                });
-            }
-        }
 
         if (classPlans.Count == 0)
         {

@@ -15,4 +15,7 @@ public class ImportClassPlan
     public int? WeekDay { get; set; }
 
     public string DayName { get; set; } = "";
+
+    /// <summary>这一天自己的时间段（用于生成专属时间表，不与其他天混用）。</summary>
+    public List<ImportPeriod> Periods { get; set; } = new();
 }
