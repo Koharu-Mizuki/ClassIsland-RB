@@ -870,22 +870,10 @@ public partial class ProfileSettingsWindow : MyWindow
         FlyoutHelper.CloseAncestorFlyout(sender);
     }
     
-    private void PushAddUndo(TimeLayoutItem item, TimeLayout layout)
+    private void PushUndo(bool isAdd, TimeLayoutItem item, TimeLayout layout, int index)
     {
-        var index = layout.Layouts.IndexOf(item);
-        var desc = $"添加{item}";
-        _undoStack.Push(new UndoEntry(IsAdd: true, item, layout, index, desc));
-        ViewModel.UndoDescriptions.Insert(0, desc);
-        _redoStack.Clear();
-        ViewModel.RedoDescriptions.Clear();
-        ViewModel.CanUndo = true;
-        ViewModel.CanRedo = false;
-    }
-
-    private void PushDeleteUndo(TimeLayoutItem item, TimeLayout layout, int index)
-    {
-        var desc = $"删除{item}";
-        _undoStack.Push(new UndoEntry(IsAdd: false, item, layout, index, desc));
+        var desc = $"{(isAdd ? "添加" : "删除")}{item}";
+        _undoStack.Push(new UndoEntry(isAdd, item, layout, index, desc));
         ViewModel.UndoDescriptions.Insert(0, desc);
         _redoStack.Clear();
         ViewModel.RedoDescriptions.Clear();
@@ -1086,7 +1074,7 @@ public partial class ProfileSettingsWindow : MyWindow
         AddTimePoint(newItem);
         // ReSortTimeLayout(newItem);
         ViewModel.SelectedTimePoint = newItem;
-        PushAddUndo(newItem, timeLayout);
+        PushUndo(isAdd: true, newItem, timeLayout, timeLayout.Layouts.IndexOf(newItem));
         //OpenDrawer("TimePointEditor");
         SentrySdk.Metrics.EmitCounter("views.ProfileSettingsWindow.timePoint.create", 1,
         [
@@ -1145,7 +1133,7 @@ public partial class ProfileSettingsWindow : MyWindow
         timeLayout.RemoveTimePoint(timePoint);
         if (i > 0)
             ViewModel.SelectedTimePoint = timeLayout.Layouts[i - 1];
-        PushDeleteUndo(timePoint, timeLayout, i);
+        PushUndo(isAdd: false, timePoint, timeLayout, i);
         SentrySdk.Metrics.EmitCounter("views.ProfileSettingsWindow.timePoint.remove", 1);
     }
 
