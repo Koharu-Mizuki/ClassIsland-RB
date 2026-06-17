@@ -161,12 +161,20 @@ public partial class OcrAiImportProvider : ProfileTransferProviderControlBase
             }
             else
             {
-                var templateProfileJson = await new StreamReader(
-                    AssetLoader.Open(new Uri("avares://ClassIsland/Assets/default-subjects.json"))).ReadToEndAsync();
+                if (string.IsNullOrWhiteSpace(ViewModel.NewProfileName))
+                {
+                    throw new InvalidOperationException("请填写新档案的名称。");
+                }
+
+                string templateProfileJson;
+                using (var reader = new StreamReader(AssetLoader.Open(new Uri("avares://ClassIsland/Assets/default-subjects.json"))))
+                {
+                    templateProfileJson = await reader.ReadToEndAsync();
+                }
                 var templateProfile = JsonSerializer.Deserialize<Profile>(templateProfileJson);
                 profile = _lastResult.ToProfile(templateProfile);
 
-                var path = Path.Combine(ProfileService.ProfilePath, ViewModel.NewProfileName + ".json");
+                var path = Path.Combine(ProfileService.ProfilePath, ViewModel.NewProfileName.Trim() + ".json");
                 if (File.Exists(path))
                 {
                     throw new InvalidOperationException($"无法导入课表：{path} 已存在。");

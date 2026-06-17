@@ -16,6 +16,7 @@ namespace ClassIsland.Services;
 /// </summary>
 public class OcrAiTimetableService(ILogger<OcrAiTimetableService> logger)
 {
+    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromMinutes(3) };
     private const string Prompt =
         """
         你是一个课表识别助手。请仔细识别这张课程表图片，并严格只输出一个 JSON 对象，不要包含任何解释文字或 Markdown 代码块标记。
@@ -90,14 +91,12 @@ public class OcrAiTimetableService(ILogger<OcrAiTimetableService> logger)
             }
         };
 
-        using var http = new HttpClient();
-        http.Timeout = TimeSpan.FromMinutes(3);
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat/completions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
         request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
 
         logger.LogInformation("正在请求视觉模型识别课表：{model} @ {baseUrl}", model, baseUrl);
-        using var response = await http.SendAsync(request, ct);
+        using var response = await Http.SendAsync(request, ct);
         var responseText = await response.Content.ReadAsStringAsync(ct);
         if (!response.IsSuccessStatusCode)
         {
