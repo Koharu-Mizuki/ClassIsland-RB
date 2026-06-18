@@ -1,8 +1,8 @@
 id: classisland.portable-import
 name: 便携导入
-description: 通过手动输入文字快速导入课表和时间表，无需配置任何 API。
+description: 通过手动输入文字或 AI 识图快速导入课表，无需复杂配置。支持文字粘贴解析与智谱 GLM 视觉识别两种方式。
 entranceAssembly: "ClassIsland.PortableImport.dll"
-url: https://github.com/ClassIsland/ClassIsland
+url: https://github.com/koharu-mizuki/classisland-rb
 apiVersion: 2.0.0.0
 version: 1.0.0.0
 author: Kohara Mizuki
