@@ -87,10 +87,13 @@ public partial class TextImportProvider : ProfileTransferProviderControlBase, IN
             _statusMessage = value;
             OnPropChanged();
             OnPropChanged(nameof(HasStatusMessage));
+            OnPropChanged(nameof(HasSuccessMessage));
         }
     }
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(_statusMessage);
+
+    public bool HasSuccessMessage => HasStatusMessage && !_hasError;
 
     public bool HasError
     {
@@ -99,6 +102,7 @@ public partial class TextImportProvider : ProfileTransferProviderControlBase, IN
         {
             _hasError = value;
             OnPropChanged();
+            OnPropChanged(nameof(HasSuccessMessage));
         }
     }
 
@@ -177,6 +181,7 @@ public partial class TextImportProvider : ProfileTransferProviderControlBase, IN
     private async void ButtonParse_OnClick(object? sender, RoutedEventArgs e)
     {
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
         IsParsing = true;
         HasError = false;

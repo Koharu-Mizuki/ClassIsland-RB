@@ -61,7 +61,11 @@
                                      IsVisible="{Binding IsParsing}"
                                      Height="4"/>
                         <TextBlock Text="{Binding StatusMessage}"
-                                   IsVisible="{Binding HasStatusMessage}"
+                                   IsVisible="{Binding HasError}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   IsVisible="{Binding HasSuccessMessage}"
                                    TextWrapping="Wrap"/>
                     </StackPanel>
                 </controls:SettingsExpanderItem>
