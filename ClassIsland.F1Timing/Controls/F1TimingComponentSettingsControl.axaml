@@ -1,0 +1,66 @@
+<controls1:ComponentBase x:TypeArguments="settings:F1TimingComponentSettings"
+                         x:Class="ClassIsland.F1Timing.Controls.F1TimingComponentSettingsControl"
+                         xmlns="https://github.com/avaloniaui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                         xmlns:local="clr-namespace:ClassIsland.F1Timing.Controls"
+                         xmlns:controls1="clr-namespace:ClassIsland.Core.Abstractions.Controls;assembly=ClassIsland.Core"
+                         xmlns:settings="clr-namespace:ClassIsland.F1Timing.Models.Settings"
+                         xmlns:ci="http://classisland.tech/schemas/xaml/core"
+                         xmlns:controls2="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+                         mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:F1TimingComponentSettingsControl}}">
+        <StackPanel Classes="component-settings-container animated-intro">
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE774;}"
+                                        Header="数据源"
+                                        Description="选择实时计时数据的来源。">
+                <controls2:SettingsExpander.Footer>
+                    <ComboBox MinWidth="200"
+                              SelectedValue="{Binding Settings.DataSource, Mode=TwoWay}"
+                              SelectedValueBinding="{Binding Tag}">
+                        <ComboBoxItem Content="OpenF1（推荐）" Tag="openf1" />
+                        <ComboBoxItem Content="官方 LiveTiming（开发中）" Tag="livetiming" />
+                    </ComboBox>
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE7C3;}"
+                                        Header="仅在比赛时显示"
+                                        Description="开启后只有赛事进行中才在顶栏显示排位条；关闭则常驻显示。">
+                <controls2:SettingsExpander.Footer>
+                    <ToggleSwitch IsChecked="{Binding Settings.OnlyWhenLive, Mode=TwoWay}" />
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE895;}"
+                                        Header="刷新间隔"
+                                        Description="数据轮询频率（秒），范围 3~60。比赛时建议 5 秒。">
+                <controls2:SettingsExpander.Footer>
+                    <NumericUpDown MinWidth="130"
+                                   Minimum="3" Maximum="60" Increment="1"
+                                   FormatString="0"
+                                   Value="{Binding Settings.PollIntervalSeconds, Mode=TwoWay}" />
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE840;}"
+                                        Header="Timing Tower 窗口置顶"
+                                        Description="展开的完整计时板窗口始终显示在最前。">
+                <controls2:SettingsExpander.Footer>
+                    <ToggleSwitch IsChecked="{Binding Settings.TowerTopmost, Mode=TwoWay}" />
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE7C1;}"
+                                        Header="打开 Timing Tower"
+                                        Description="立即打开完整计时板窗口。日常可改用「打开 F1 计时板」动作（绑定到托盘菜单/快捷键）。">
+                <controls2:SettingsExpander.Footer>
+                    <Button Content="打开" Click="OpenTower_Click" />
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
+        </StackPanel>
+    </ScrollViewer>
+</controls1:ComponentBase>

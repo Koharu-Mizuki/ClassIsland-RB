@@ -1,0 +1,173 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:conv="clr-namespace:ClassIsland.F1Timing.Converters"
+        xmlns:models="clr-namespace:ClassIsland.F1Timing.Models"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="760"
+        x:Class="ClassIsland.F1Timing.Views.F1TimingTowerWindow"
+        x:DataType="models:F1SessionSnapshot"
+        Title="F1 实时计时" Width="500" Height="760"
+        WindowStartupLocation="CenterScreen"
+        MinWidth="420" MinHeight="300"
+        Background="#08080C"
+        FontFamily="Segoe UI, Microsoft YaHei UI, sans-serif">
+
+    <Window.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#E8E8EC" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.mono">
+            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Courier New, monospace" />
+        </Style>
+        <Style Selector="TextBlock.pb">
+            <Setter Property="Foreground" Value="#2ECC40" />
+        </Style>
+        <Style Selector="TextBlock.fastest">
+            <Setter Property="Foreground" Value="#B14BE0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.head">
+            <Setter Property="Foreground" Value="#7A7A85" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.gap">
+            <Setter Property="Foreground" Value="#B8B8C0" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- 顶部：旗帜 + 赛道 + 圈数 -->
+        <Border Grid.Row="0" Background="#14141C" Padding="14,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Border Width="14" Height="14" CornerRadius="3"
+                            Background="{Binding Flag, Converter={x:Static conv:FlagToBrushConverter.Instance}}" />
+                    <TextBlock Text="{Binding Flag, Converter={x:Static conv:FlagToTextConverter.Instance}}"
+                               FontWeight="SemiBold" FontSize="13" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding CircuitName}" FontWeight="Bold" FontSize="15"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding SessionName}" Foreground="#7A7A85" FontSize="11"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Classes="mono" Text="{Binding LapsText}"
+                           FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- 列标题 -->
+        <Border Grid.Row="1" Background="#0C0C12" Padding="10,5" BorderBrush="#22222C" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="46" />
+                    <ColumnDefinition Width="66" />
+                    <ColumnDefinition Width="74" />
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Classes="head" Text="P" />
+                <TextBlock Grid.Column="2" Classes="head" Text="车手" />
+                <TextBlock Grid.Column="3" Classes="head" Text="间隔" />
+                <TextBlock Grid.Column="4" Classes="head" Text="上圈" />
+                <TextBlock Grid.Column="5" Classes="head" Text="分段" />
+                <TextBlock Grid.Column="6" Classes="head" Text="轮胎" />
+            </Grid>
+        </Border>
+
+        <!-- 计时行 -->
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
+            <Panel>
+                <ItemsControl ItemsSource="{Binding Drivers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:F1DriverTiming">
+                            <Border Height="29" Margin="0,1,0,0" Background="#12121A">
+                                <Grid Margin="10,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="26" />
+                                        <ColumnDefinition Width="4" />
+                                        <ColumnDefinition Width="46" />
+                                        <ColumnDefinition Width="66" />
+                                        <ColumnDefinition Width="74" />
+                                        <ColumnDefinition Width="40" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Classes="mono" Text="{Binding Position}"
+                                               FontWeight="Bold" FontSize="13" />
+                                    <Border Grid.Column="1" Width="4" Height="18" CornerRadius="2"
+                                            VerticalAlignment="Center"
+                                            Background="{Binding TeamColour, Converter={x:Static conv:HexToBrushConverter.Instance}}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Tla}" FontWeight="Bold"
+                                               FontSize="13" Margin="6,0,0,0" />
+                                    <TextBlock Grid.Column="3" Classes="mono gap" Text="{Binding GapToLeader}"
+                                               FontSize="12" />
+                                    <TextBlock Grid.Column="4" Classes="mono" Text="{Binding LastLapTime}"
+                                               FontSize="12"
+                                               Classes.pb="{Binding IsPersonalBest}"
+                                               Classes.fastest="{Binding IsOverallFastest}" />
+
+                                    <!-- 分段三色点 -->
+                                    <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="2"
+                                                VerticalAlignment="Center">
+                                        <Border Width="9" Height="3" CornerRadius="1.5"
+                                                ToolTip.Tip="{Binding Sector1}"
+                                                Background="{Binding Sector1State, Converter={x:Static conv:SectorStateToBrushConverter.Instance}}" />
+                                        <Border Width="9" Height="3" CornerRadius="1.5"
+                                                ToolTip.Tip="{Binding Sector2}"
+                                                Background="{Binding Sector2State, Converter={x:Static conv:SectorStateToBrushConverter.Instance}}" />
+                                        <Border Width="9" Height="3" CornerRadius="1.5"
+                                                ToolTip.Tip="{Binding Sector3}"
+                                                Background="{Binding Sector3State, Converter={x:Static conv:SectorStateToBrushConverter.Instance}}" />
+                                    </StackPanel>
+
+                                    <!-- 轮胎环 + 圈龄 + DRS -->
+                                    <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="5"
+                                                VerticalAlignment="Center">
+                                        <Border Width="19" Height="19" CornerRadius="10" BorderThickness="2"
+                                                VerticalAlignment="Center"
+                                                BorderBrush="{Binding Tyre, Converter={x:Static conv:TyreToBrushConverter.Instance}}">
+                                            <TextBlock Text="{Binding Tyre, Converter={x:Static conv:TyreToLetterConverter.Instance}}"
+                                                       Foreground="{Binding Tyre, Converter={x:Static conv:TyreToBrushConverter.Instance}}"
+                                                       FontSize="10" FontWeight="Bold"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Classes="mono" Text="{Binding TyreAge}" Foreground="#8A8A90"
+                                                   FontSize="11" VerticalAlignment="Center" />
+                                        <Border Background="#2ECC40" CornerRadius="2" Padding="3,0"
+                                                VerticalAlignment="Center" IsVisible="{Binding Drs}">
+                                            <TextBlock Text="DRS" Foreground="#08080C" FontSize="9"
+                                                       FontWeight="Bold" VerticalAlignment="Center" />
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="正在连接 OpenF1，等待赛事数据…"
+                           Foreground="#6A6A75" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="0,60,0,0"
+                           IsVisible="{Binding !HasData}" />
+            </Panel>
+        </ScrollViewer>
+
+        <!-- 底部状态栏 -->
+        <Border Grid.Row="3" Background="#0C0C12" Padding="12,6" BorderBrush="#22222C" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#7A7A85" FontSize="11"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Classes="mono" Foreground="#6A6A75" FontSize="11"
+                           Text="{Binding LastUpdated, StringFormat='更新 {0:HH:mm:ss}'}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,55 @@
+<controls:ComponentBase x:TypeArguments="settings:F1TimingComponentSettings"
+                        x:Class="ClassIsland.F1Timing.Controls.F1TimingComponent"
+                        xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                        xmlns:local="clr-namespace:ClassIsland.F1Timing.Controls"
+                        xmlns:controls="clr-namespace:ClassIsland.Core.Abstractions.Controls;assembly=ClassIsland.Core"
+                        xmlns:settings="clr-namespace:ClassIsland.F1Timing.Models.Settings"
+                        xmlns:models="clr-namespace:ClassIsland.F1Timing.Models"
+                        xmlns:conv="clr-namespace:ClassIsland.F1Timing.Converters"
+                        mc:Ignorable="d" d:DesignHeight="40" d:DesignWidth="360">
+    <controls:ComponentBase.Resources>
+        <DataTemplate x:Key="DriverItemTemplate" x:DataType="models:F1DriverTiming">
+            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,16,0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Position}" FontWeight="Bold" VerticalAlignment="Center" />
+                <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                         Fill="{Binding TeamColour, Converter={x:Static conv:HexToBrushConverter.Instance}}" />
+                <TextBlock Text="{Binding Tla}" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+        </DataTemplate>
+    </controls:ComponentBase.Resources>
+
+    <!-- 横向滚动排位（跑马灯，内容两份首尾相接实现无缝）。仅比赛时显示由设置控制。 -->
+    <Border x:Name="Viewport" ClipToBounds="True" MaxWidth="440" VerticalAlignment="Center"
+            DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:F1TimingComponent}}">
+        <Border.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding Path="Snapshot.IsLive" />
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="!Settings.OnlyWhenLive" />
+                    <Binding Path="Snapshot.HasDrivers" />
+                </MultiBinding>
+            </MultiBinding>
+        </Border.IsVisible>
+        <StackPanel x:Name="Track" Orientation="Horizontal">
+            <ItemsControl x:Name="List1" ItemsSource="{Binding Snapshot.Drivers}"
+                          ItemTemplate="{StaticResource DriverItemTemplate}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+            <ItemsControl ItemsSource="{Binding Snapshot.Drivers}"
+                          ItemTemplate="{StaticResource DriverItemTemplate}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</controls:ComponentBase>

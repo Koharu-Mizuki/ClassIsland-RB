@@ -1,0 +1,8 @@
+id: classisland.f1-timing
+name: F1 实时计时
+description: 在桌面顶栏显示 F1 实时计时板，点击可展开完整 Timing Tower。显示圈速/最快圈、轮胎/进站、间隔、旗帜与剩余圈数等，数据来自 OpenF1。
+entranceAssembly: "ClassIsland.F1Timing.dll"
+url: https://github.com/koharu-mizuki/classisland-rb
+apiVersion: 2.0.0.0
+version: 1.0.0.0
+author: Kohara Mizuki
