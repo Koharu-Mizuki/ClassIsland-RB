@@ -72,4 +72,12 @@ public class F1TimingComponentSettings : ObservableModelBase
         get => _onlyWhenLive;
         set => SetField(ref _onlyWhenLive, value);
     }
+
+    private int _fastestLapMode = 2;
+    /// <summary>最快圈动画显示方式：0=仅组件行 overlay，1=仅全局通知，2=两行同时。</summary>
+    public int FastestLapMode
+    {
+        get => _fastestLapMode;
+        set => SetField(ref _fastestLapMode, value);
+    }
 }

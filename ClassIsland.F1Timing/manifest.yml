@@ -4,5 +4,5 @@ description: 在桌面顶栏显示 F1 实时计时板，点击可展开完整 Ti
 entranceAssembly: "ClassIsland.F1Timing.dll"
 url: https://github.com/koharu-mizuki/classisland-rb
 apiVersion: 2.0.0.0
-version: 1.0.0.0
+version: 1.1.0.0
 author: Kohara Mizuki

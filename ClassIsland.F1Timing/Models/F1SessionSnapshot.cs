@@ -12,9 +12,43 @@ public class F1SessionSnapshot : ObservableModelBase
     /// <summary>计时行集合（按位次排序），内容随轮询原地增删改。</summary>
     public ObservableCollection<F1DriverTiming> Drivers { get; } = new();
 
+    /// <summary>赛况消息（Race Control / 旗帜 / 无线电），最新的在最前。</summary>
+    public ObservableCollection<F1RaceControlMessage> RaceControl { get; } = new();
+
+    /// <summary>赛道天气（原地更新，长期实例）。</summary>
+    public F1Weather Weather { get; } = new();
+
     public F1SessionSnapshot()
     {
         Drivers.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasDrivers));
+        RaceControl.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRaceControl));
+    }
+
+    /// <summary>是否有赛况消息。</summary>
+    public bool HasRaceControl => RaceControl.Count > 0;
+
+    private bool _hasWeather;
+    /// <summary>是否已有天气数据。</summary>
+    public bool HasWeather
+    {
+        get => _hasWeather;
+        set => SetField(ref _hasWeather, value);
+    }
+
+    private string _fastestLapTla = "";
+    /// <summary>全场最快圈持有者的三字母缩写。</summary>
+    public string FastestLapTla
+    {
+        get => _fastestLapTla;
+        set => SetField(ref _fastestLapTla, value);
+    }
+
+    private string _fastestLapTime = "";
+    /// <summary>全场最快圈圈速文本。</summary>
+    public string FastestLapTime
+    {
+        get => _fastestLapTime;
+        set => SetField(ref _fastestLapTime, value);
     }
 
     private bool _hasDrivers;
@@ -129,5 +163,39 @@ public class F1SessionSnapshot : ObservableModelBase
     {
         get => _lastUpdated;
         set => SetField(ref _lastUpdated, value);
+    }
+
+    // —— P6 赛程提醒 ——
+
+    private string _nextRaceName = "";
+    /// <summary>下一场大奖赛名称。</summary>
+    public string NextRaceName
+    {
+        get => _nextRaceName;
+        set => SetField(ref _nextRaceName, value);
+    }
+
+    private string _nextSessionLabel = "";
+    /// <summary>下一个会话标签（FP1 / 排位赛 / 冲刺赛 / 正赛）。</summary>
+    public string NextSessionLabel
+    {
+        get => _nextSessionLabel;
+        set => SetField(ref _nextSessionLabel, value);
+    }
+
+    private string _countdownText = "";
+    /// <summary>倒计时文本。</summary>
+    public string CountdownText
+    {
+        get => _countdownText;
+        set => SetField(ref _countdownText, value);
+    }
+
+    private bool _hasCountdown;
+    /// <summary>是否有倒计时数据可显示。</summary>
+    public bool HasCountdown
+    {
+        get => _hasCountdown;
+        set => SetField(ref _hasCountdown, value);
     }
 }

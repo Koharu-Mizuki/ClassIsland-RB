@@ -53,4 +53,19 @@ public sealed class F1FetchResult
 
     /// <summary>按位次升序排列的车手行。</summary>
     public List<F1DriverTiming> Drivers { get; set; } = new();
+
+    /// <summary>本次拉取新产生的赛况消息（将插入快照集合顶部）。</summary>
+    public List<F1RaceControlMessage> NewMessages { get; set; } = new();
+
+    /// <summary>本次是否带有天气数据。</summary>
+    public bool HasWeather { get; set; }
+
+    /// <summary>天气快照（<see cref="HasWeather"/> 为 true 时有效）。</summary>
+    public F1Weather? Weather { get; set; }
+
+    /// <summary>全场最快圈持有者三字母缩写。</summary>
+    public string FastestLapTla { get; set; } = "";
+
+    /// <summary>全场最快圈圈速文本。</summary>
+    public string FastestLapTime { get; set; } = "";
 }

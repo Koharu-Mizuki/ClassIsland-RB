@@ -21,35 +21,67 @@
         </DataTemplate>
     </controls:ComponentBase.Resources>
 
-    <!-- 横向滚动排位（跑马灯，内容两份首尾相接实现无缝）。仅比赛时显示由设置控制。 -->
-    <Border x:Name="Viewport" ClipToBounds="True" MaxWidth="440" VerticalAlignment="Center"
-            DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:F1TimingComponent}}">
-        <Border.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                <Binding Path="Snapshot.IsLive" />
-                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                    <Binding Path="!Settings.OnlyWhenLive" />
-                    <Binding Path="Snapshot.HasDrivers" />
-                </MultiBinding>
-            </MultiBinding>
-        </Border.IsVisible>
-        <StackPanel x:Name="Track" Orientation="Horizontal">
-            <ItemsControl x:Name="List1" ItemsSource="{Binding Snapshot.Drivers}"
-                          ItemTemplate="{StaticResource DriverItemTemplate}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
-            <ItemsControl ItemsSource="{Binding Snapshot.Drivers}"
-                          ItemTemplate="{StaticResource DriverItemTemplate}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
-        </StackPanel>
-    </Border>
+    <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:F1TimingComponent}}">
+
+        <!-- 横向滚动排位（跑马灯）。IsVisible / Opacity 由代码驱动，避免硬切。 -->
+        <Border x:Name="Viewport" ClipToBounds="True" MaxWidth="440" VerticalAlignment="Center"
+                IsVisible="False" Opacity="0">
+            <StackPanel x:Name="Track" Orientation="Horizontal">
+                <ItemsControl x:Name="List1" ItemsSource="{Binding Snapshot.Drivers}"
+                              ItemTemplate="{StaticResource DriverItemTemplate}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+                <ItemsControl ItemsSource="{Binding Snapshot.Drivers}"
+                              ItemTemplate="{StaticResource DriverItemTemplate}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- 最快圈紫色 flood：从右往左填充覆盖排位条，Width 由 Animation.RunAsync 驱动 -->
+        <Border x:Name="FastestLapOverlay"
+                Background="#B14BE0"
+                ClipToBounds="True"
+                Width="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Stretch"
+                IsVisible="False">
+            <DockPanel x:Name="FastestLapContent" Margin="10,0" LastChildFill="False" VerticalAlignment="Center" Opacity="0">
+                <!-- FASTEST / LAP 双行小字 -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Vertical" VerticalAlignment="Center"
+                            Spacing="0" Margin="0,0,8,0">
+                    <TextBlock Text="FASTEST"
+                               FontSize="7" FontWeight="Bold" LetterSpacing="1.2"
+                               Foreground="White" LineHeight="8.5" />
+                    <TextBlock Text="LAP"
+                               FontSize="7" FontWeight="Bold" LetterSpacing="1.2"
+                               Foreground="White" LineHeight="8.5" />
+                </StackPanel>
+                <!-- 细分割线 -->
+                <Border DockPanel.Dock="Left" Width="1" Background="#60FFFFFF" Margin="0,4,8,4" />
+                <!-- 车手缩写（大字） -->
+                <TextBlock x:Name="FastestLapTlaLabel"
+                           DockPanel.Dock="Left"
+                           FontSize="13" FontWeight="Bold"
+                           Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <!-- 圈速（小字偏淡） -->
+                <TextBlock x:Name="FastestLapTimeLabel"
+                           DockPanel.Dock="Left"
+                           FontSize="11" FontWeight="SemiBold"
+                           Foreground="#DDD0FF"
+                           VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
+    </Grid>
 </controls:ComponentBase>

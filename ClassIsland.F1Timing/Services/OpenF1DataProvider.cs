@@ -113,10 +113,27 @@ public sealed class OpenF1DataProvider : IF1DataProvider
             var cursorIso = Iso(_cursorUtc);
             var lapCursorIso = Iso(_cursorUtc.AddSeconds(-120)); // 圈速跨界圈需更大重叠
             var ivCursorIso = Iso(now.AddMinutes(-3));           // 间隔只需最近瞬时值
-
-            // 2) 位次（增量，按车手取最新）
+            // 2) 位次先顺序拿（关键数据，确保第一个请求完整，不与其他竞争限速）
             var positions = await GetListAsync<PositionDto>(
                 $"position?session_key={_sessionKey}&date>={cursorIso}", ct);
+
+            // 3-7) 其余五类并行拉取，省去 4 个 RTT
+            // 注：stints 端点无 date 字段，只能按 session_key 全量拉（数据量小）
+            var lapsTask    = GetListAsync<LapDto>($"laps?session_key={_sessionKey}&date_start>={lapCursorIso}", ct);
+            var ivTask      = GetListAsync<IntervalDto>($"intervals?session_key={_sessionKey}&date>={ivCursorIso}", ct);
+            var stintsTask  = GetListAsync<StintDto>($"stints?session_key={_sessionKey}", ct);
+            var carDataTask = GetListAsync<CarDataDto>($"car_data?session_key={_sessionKey}&date>={Iso(now.AddSeconds(-6))}", ct);
+            var rcsTask     = GetListAsync<RaceControlDto>($"race_control?session_key={_sessionKey}&date>={cursorIso}", ct);
+
+            await Task.WhenAll(lapsTask, ivTask, stintsTask, carDataTask, rcsTask);
+
+            var laps      = lapsTask.Result;
+            var intervals = ivTask.Result;
+            var stints    = stintsTask.Result;
+            var carData   = carDataTask.Result;
+            var rcs       = rcsTask.Result;
+
+            // 位次
             foreach (var g in positions.GroupBy(p => p.DriverNumber))
             {
                 var latest = g.OrderBy(p => p.Date).Last();
@@ -125,8 +142,6 @@ public sealed class OpenF1DataProvider : IF1DataProvider
             }
 
             // 3) 圈速 + 分段（增量）
-            var laps = await GetListAsync<LapDto>(
-                $"laps?session_key={_sessionKey}&date_start>={lapCursorIso}", ct);
             foreach (var g in laps.GroupBy(l => l.DriverNumber))
             {
                 if (!_rows.TryGetValue(g.Key, out var row)) continue;
@@ -175,9 +190,7 @@ public sealed class OpenF1DataProvider : IF1DataProvider
             foreach (var row in _rows.Values)
                 row.IsOverallFastest = row.DriverNumber == _overallFastestDriver;
 
-            // 4) 间隔（仅最近 3 分钟，按车手取最新）
-            var intervals = await GetListAsync<IntervalDto>(
-                $"intervals?session_key={_sessionKey}&date>={ivCursorIso}", ct);
+            // 4) 间隔
             foreach (var g in intervals.GroupBy(i => i.DriverNumber))
             {
                 if (!_rows.TryGetValue(g.Key, out var row)) continue;
@@ -186,8 +199,7 @@ public sealed class OpenF1DataProvider : IF1DataProvider
                 row.Interval = FormatDelta(latest.Interval);
             }
 
-            // 5) 轮胎与进站（全量，数据量小）
-            var stints = await GetListAsync<StintDto>($"stints?session_key={_sessionKey}", ct);
+            // 5) 轮胎与进站（增量合并，按车手取最新 stint）
             foreach (var g in stints.GroupBy(s => s.DriverNumber))
             {
                 if (!_rows.TryGetValue(g.Key, out var row)) continue;
@@ -199,9 +211,7 @@ public sealed class OpenF1DataProvider : IF1DataProvider
                 row.TyreAge = current.TyreAgeAtStart + Math.Max(0, _currentLap - current.LapStart);
             }
 
-            // 6) DRS（最近几秒遥测，按车手取最新；非直播时为空）
-            var carData = await GetListAsync<CarDataDto>(
-                $"car_data?session_key={_sessionKey}&date>={Iso(now.AddSeconds(-6))}", ct);
+            // 6) DRS
             foreach (var g in carData.GroupBy(c => c.DriverNumber))
             {
                 if (!_rows.TryGetValue(g.Key, out var row)) continue;
@@ -209,8 +219,6 @@ public sealed class OpenF1DataProvider : IF1DataProvider
             }
 
             // 7) 旗帜 / 安全车（增量状态机）
-            var rcs = await GetListAsync<RaceControlDto>(
-                $"race_control?session_key={_sessionKey}&date>={cursorIso}", ct);
             foreach (var rc in rcs.OrderBy(r => r.Date))
                 ApplyRaceControl(rc);
 
@@ -251,8 +259,8 @@ public sealed class OpenF1DataProvider : IF1DataProvider
 
     private List<F1DriverTiming> SortedRows() =>
         _rows.Values
-            .Where(r => r.Position > 0 || !string.IsNullOrEmpty(r.LastLapTime))
-            .OrderBy(r => r.Position <= 0 ? int.MaxValue : r.Position)
+            .Where(r => r.Position > 0)
+            .OrderBy(r => r.Position)
             .ToList();
 
     private void UpdateSectorBest(int i, double? val, double[] dbs)
@@ -285,8 +293,16 @@ public sealed class OpenF1DataProvider : IF1DataProvider
         if (!resp.IsSuccessStatusCode)
             return new List<T>();
         await using var stream = await resp.Content.ReadAsStreamAsync(ct);
-        var list = await JsonSerializer.DeserializeAsync<List<T>>(stream, JsonOpts, ct);
-        return list ?? new List<T>();
+        try
+        {
+            var list = await JsonSerializer.DeserializeAsync<List<T>>(stream, JsonOpts, ct);
+            return list ?? new List<T>();
+        }
+        catch (JsonException)
+        {
+            // 端点返回非数组格式（如错误对象）时静默忽略
+            return new List<T>();
+        }
     }
 
     private void ApplyRaceControl(RaceControlDto rc)

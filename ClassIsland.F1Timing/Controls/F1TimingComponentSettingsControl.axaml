@@ -13,6 +13,60 @@
     <ScrollViewer DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:F1TimingComponentSettingsControl}}">
         <StackPanel Classes="component-settings-container animated-intro">
 
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE7F4;}"
+                                        Header="🎞 动画调试台"
+                                        Description="触发各动画效果以便调试，需先开启模拟演示以生成测试数据。"
+                                        IsExpanded="True">
+                <controls2:SettingsExpanderItem Content="灵动岛弹出 / 收起"
+                                                Description="收起灵动岛，600ms 后重新弹出，演示展宽动画。">
+                    <controls2:SettingsExpanderItem.Footer>
+                        <Button Content="触发" Click="DemoIslandBounce_Click" />
+                    </controls2:SettingsExpanderItem.Footer>
+                </controls2:SettingsExpanderItem>
+                <controls2:SettingsExpanderItem Content="超车排名互换"
+                                                Description="交换 P1 ↔ P2，在 Timing Tower 中可见行滑动动画。">
+                    <controls2:SettingsExpanderItem.Footer>
+                        <Button Content="触发" Click="DemoOvertake_Click" />
+                    </controls2:SettingsExpanderItem.Footer>
+                </controls2:SettingsExpanderItem>
+                <controls2:SettingsExpanderItem Content="最快圈紫色 flood"
+                                                Description="发送紫色蒙版通知，显示 FASTEST LAP 与车手圈速。">
+                    <controls2:SettingsExpanderItem.Footer>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox SelectedIndex="{Binding Settings.FastestLapMode}" MinWidth="160"
+                                      ToolTip.Tip="选择 FASTEST LAP 动画在哪一行显示">
+                                <ComboBoxItem Content="仅 F1 组件行" />
+                                <ComboBoxItem Content="仅通知行（原版）" />
+                                <ComboBoxItem Content="两行同时" />
+                            </ComboBox>
+                            <Button Content="触发" Click="DemoFastestLap_Click" />
+                        </StackPanel>
+                    </controls2:SettingsExpanderItem.Footer>
+                </controls2:SettingsExpanderItem>
+                <controls2:SettingsExpanderItem Content="进站动画"
+                                                Description="（待实现）"
+                                                IsEnabled="False">
+                    <controls2:SettingsExpanderItem.Footer>
+                        <Button Content="触发" IsEnabled="False" />
+                    </controls2:SettingsExpanderItem.Footer>
+                </controls2:SettingsExpanderItem>
+                <controls2:SettingsExpanderItem Content="旗帜氛围色"
+                                                Description="（待实现）"
+                                                IsEnabled="False">
+                    <controls2:SettingsExpanderItem.Footer>
+                        <Button Content="触发" IsEnabled="False" />
+                    </controls2:SettingsExpanderItem.Footer>
+                </controls2:SettingsExpanderItem>
+            </controls2:SettingsExpander>
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE768;}"
+                                        Header="🎬 模拟演示"
+                                        Description="一键调出一场虚拟比赛（位次/进站/安全车/最快圈/天气/无线电），无需真实赛事即可演示与测试。也可绑定「F1 模拟演示开关」动作到托盘菜单/快捷键。">
+                <controls2:SettingsExpander.Footer>
+                    <Button x:Name="SimButton" Content="▶ 开始模拟" Click="ToggleSim_Click" />
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
             <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE774;}"
                                         Header="数据源"
                                         Description="选择实时计时数据的来源。">
@@ -58,6 +112,24 @@
                                         Description="立即打开完整计时板窗口。日常可改用「打开 F1 计时板」动作（绑定到托盘菜单/快捷键）。">
                 <controls2:SettingsExpander.Footer>
                     <Button Content="打开" Click="OpenTower_Click" />
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE734;}"
+                                        Header="打开积分榜"
+                                        Description="查看当前赛季车手/车队积分排名。数据来自 Ergast API，缓存 1 小时。">
+                <controls2:SettingsExpander.Footer>
+                    <Button Content="打开" Click="OpenStandings_Click" />
+                </controls2:SettingsExpander.Footer>
+            </controls2:SettingsExpander>
+
+            <controls2:SettingsExpander IconSource="{ci:FluentIconSource &#xE734;}"
+                                        Header="关注车手"
+                                        Description="输入车手三字母缩写（如 VER、HAM），开启后该车手位次变化、进站、最快圈时会收到通知。">
+                <controls2:SettingsExpander.Footer>
+                    <TextBox MinWidth="100" MaxLength="3"
+                             Text="{Binding Settings.HighlightDriver, Mode=TwoWay}"
+                             Watermark="TLA" />
                 </controls2:SettingsExpander.Footer>
             </controls2:SettingsExpander>
 

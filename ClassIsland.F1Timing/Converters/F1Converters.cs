@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -148,4 +149,81 @@ public sealed class SectorStateToBrushConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
+}
+
+/// <summary>int → bool（0 = false, 非0 = true）。用于 PitStops > 0 时显示 badge。</summary>
+public sealed class IntToBoolConverter : IValueConverter
+{
+    public static readonly IntToBoolConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is int i && i > 0;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Race Control 消息类别 → 颜色。</summary>
+public sealed class RaceControlCategoryToBrushConverter : IValueConverter
+{
+    public static readonly RaceControlCategoryToBrushConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var hex = value is RaceControlCategory c
+            ? c switch
+            {
+                RaceControlCategory.Flag => "#FFD12E",
+                RaceControlCategory.SafetyCar => "#FF8C00",
+                RaceControlCategory.Drs => "#B14BE0",
+                RaceControlCategory.Incident => "#E60000",
+                RaceControlCategory.PitLane => "#7A7A85",
+                RaceControlCategory.Radio => "#4A9EFF",
+                RaceControlCategory.Weather => "#00BCD4",
+                _ => "#E8E8EC"
+            }
+            : "#E8E8EC";
+        return new SolidColorBrush(Color.Parse(hex));
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Race Control 消息类别 → FluentIcon 字符。</summary>
+public sealed class RaceControlCategoryToIconConverter : IValueConverter
+{
+    public static readonly RaceControlCategoryToIconConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is RaceControlCategory c
+            ? c switch
+            {
+                RaceControlCategory.Flag => "",       // Flag
+                RaceControlCategory.SafetyCar => "",  // Car
+                RaceControlCategory.Drs => "",        // Flash
+                RaceControlCategory.Incident => "",   // Warning
+                RaceControlCategory.PitLane => "",    // Car
+                RaceControlCategory.Radio => "",      // Phone
+                RaceControlCategory.Weather => "",    // Cloud
+                _ => ""                               // Info
+            }
+            : "";
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>多个 bool 任一为 true → 1.0，否则 0.0（用于「常驻且没比赛时透明」）。</summary>
+public sealed class AnyTrueToOpacityConverter : IMultiValueConverter
+{
+    public static readonly AnyTrueToOpacityConverter Instance = new();
+
+    public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        foreach (var v in values)
+            if (v is true)
+                return 1.0;
+        return 0.0;
+    }
 }
