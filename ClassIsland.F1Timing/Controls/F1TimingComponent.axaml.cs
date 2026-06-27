@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
-using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -88,29 +87,17 @@ public partial class F1TimingComponent : ComponentBase<F1TimingComponentSettings
         FastestLapTlaLabel.Text = tla;
         FastestLapTimeLabel.Text = lapTime;
         FastestLapContent.Opacity = 0;
-        FastestLapOverlay.Width = 0;
-        FastestLapOverlay.IsVisible = true;
-
-        var targetWidth = Viewport.IsVisible ? Viewport.Bounds.Width : 300.0;
-        if (targetWidth < 80) targetWidth = 300.0;
+        FastestLapContent.IsVisible = false;
+        FastestLapMask.IsVisible = true;
 
         try
         {
-            // 1. 紫条从右往左填满
-            await new Animation
-            {
-                Duration = TimeSpan.FromMilliseconds(250),
-                Easing = new QuarticEaseOut(),
-                FillMode = FillMode.Forward,
-                Children =
-                {
-                    new KeyFrame { Cue = new Cue(0.0), Setters = { new Setter(Layoutable.WidthProperty, 0.0) } },
-                    new KeyFrame { Cue = new Cue(1.0), Setters = { new Setter(Layoutable.WidthProperty, targetWidth) } },
-                }
-            }.RunAsync(FastestLapOverlay, cts.Token);
-            FastestLapOverlay.Width = targetWidth;
+            // 1. 蒙版从两侧向中央扫入（与系统通知蒙版动画一致）
+            await FastestLapMask.OpenAsync();
+            cts.Token.ThrowIfCancellationRequested();
 
             // 2. 内容淡入
+            FastestLapContent.IsVisible = true;
             await new Animation
             {
                 Duration = TimeSpan.FromMilliseconds(160),
@@ -139,29 +126,19 @@ public partial class F1TimingComponent : ComponentBase<F1TimingComponentSettings
                 }
             }.RunAsync(FastestLapContent, cts.Token);
             FastestLapContent.Opacity = 0;
+            FastestLapContent.IsVisible = false;
 
-            // 4. 紫条向右收起
-            await new Animation
-            {
-                Duration = TimeSpan.FromMilliseconds(200),
-                Easing = new QuarticEaseIn(),
-                FillMode = FillMode.Forward,
-                Children =
-                {
-                    new KeyFrame { Cue = new Cue(0.0), Setters = { new Setter(Layoutable.WidthProperty, targetWidth) } },
-                    new KeyFrame { Cue = new Cue(1.0), Setters = { new Setter(Layoutable.WidthProperty, 0.0) } },
-                }
-            }.RunAsync(FastestLapOverlay, cts.Token);
+            // 4. 蒙版从中央向两侧收起
+            await FastestLapMask.CloseAsync();
         }
         catch (TaskCanceledException) { }
+        catch (OperationCanceledException) { }
         finally
         {
             if (!cts.IsCancellationRequested)
-            {
-                FastestLapOverlay.IsVisible = false;
-                FastestLapOverlay.Width = 0;
-            }
+                FastestLapMask.IsVisible = false;
             FastestLapContent.Opacity = 0;
+            FastestLapContent.IsVisible = false;
         }
     }
 

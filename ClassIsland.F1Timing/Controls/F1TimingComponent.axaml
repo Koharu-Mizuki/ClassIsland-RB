@@ -46,42 +46,45 @@
             </StackPanel>
         </Border>
 
-        <!-- 最快圈紫色 flood：从右往左填充覆盖排位条，Width 由 Animation.RunAsync 驱动 -->
-        <Border x:Name="FastestLapOverlay"
-                Background="#B14BE0"
-                ClipToBounds="True"
-                Width="0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Stretch"
-                IsVisible="False">
-            <DockPanel x:Name="FastestLapContent" Margin="10,0" LastChildFill="False" VerticalAlignment="Center" Opacity="0">
-                <!-- FASTEST / LAP 双行小字 -->
-                <StackPanel DockPanel.Dock="Left" Orientation="Vertical" VerticalAlignment="Center"
-                            Spacing="0" Margin="0,0,8,0">
-                    <TextBlock Text="FASTEST"
-                               FontSize="7" FontWeight="Bold" LetterSpacing="1.2"
-                               Foreground="White" LineHeight="8.5" />
-                    <TextBlock Text="LAP"
-                               FontSize="7" FontWeight="Bold" LetterSpacing="1.2"
-                               Foreground="White" LineHeight="8.5" />
-                </StackPanel>
-                <!-- 细分割线 -->
-                <Border DockPanel.Dock="Left" Width="1" Background="#60FFFFFF" Margin="0,4,8,4" />
-                <!-- 车手缩写（大字） -->
-                <TextBlock x:Name="FastestLapTlaLabel"
-                           DockPanel.Dock="Left"
-                           FontSize="13" FontWeight="Bold"
-                           Foreground="White"
-                           VerticalAlignment="Center"
-                           Margin="0,0,8,0" />
-                <!-- 圈速（小字偏淡） -->
-                <TextBlock x:Name="FastestLapTimeLabel"
-                           DockPanel.Dock="Left"
-                           FontSize="11" FontWeight="SemiBold"
-                           Foreground="#DDD0FF"
-                           VerticalAlignment="Center" />
-            </DockPanel>
-        </Border>
+        <!-- 最快圈蒙版：斜切平行四边形从两侧向中央扫入，与系统通知蒙版视觉一致 -->
+        <local:SlantedMaskControl x:Name="FastestLapMask"
+                                   Fill="#B14BE0"
+                                   SlantedHeight="40"
+                                   RegionDurationMs="280"
+                                   StageStaggerMs="100"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
+                                   IsVisible="False" />
+
+        <!-- 最快圈内容：叠在蒙版上方，蒙版打开后淡入 -->
+        <DockPanel x:Name="FastestLapContent" Margin="10,0" LastChildFill="False"
+                   VerticalAlignment="Center" Opacity="0" IsVisible="False">
+            <!-- FASTEST / LAP 双行小字 -->
+            <StackPanel DockPanel.Dock="Left" Orientation="Vertical" VerticalAlignment="Center"
+                        Spacing="0" Margin="0,0,8,0">
+                <TextBlock Text="FASTEST"
+                           FontSize="7" FontWeight="Bold" LetterSpacing="1.2"
+                           Foreground="White" LineHeight="8.5" />
+                <TextBlock Text="LAP"
+                           FontSize="7" FontWeight="Bold" LetterSpacing="1.2"
+                           Foreground="White" LineHeight="8.5" />
+            </StackPanel>
+            <!-- 细分割线 -->
+            <Border DockPanel.Dock="Left" Width="1" Background="#60FFFFFF" Margin="0,4,8,4" />
+            <!-- 车手缩写（大字） -->
+            <TextBlock x:Name="FastestLapTlaLabel"
+                       DockPanel.Dock="Left"
+                       FontSize="13" FontWeight="Bold"
+                       Foreground="White"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0" />
+            <!-- 圈速（小字偏淡） -->
+            <TextBlock x:Name="FastestLapTimeLabel"
+                       DockPanel.Dock="Left"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="#DDD0FF"
+                       VerticalAlignment="Center" />
+        </DockPanel>
 
     </Grid>
 </controls:ComponentBase>
